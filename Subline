@@ -1,0 +1,20 @@
+ F11 和 Shift+F11 进入全屏免打扰模式
+多行编辑方法： 鼠标选中多行，按下 Ctrl+Shift+L (Command+Shift+L) 即可同时编辑这些行； 鼠标选中文本，反复按 CTRL+D (Command+D) 即可继续向下同时选中下一个相同的文本进行同时编辑； 
+ Ctrl+P(Win) 或 Shift+Command+P(Mac) 即可调出文件切换面板，接着你只需输入文件名，回车后即可瞬间切换过去！并且它支持模糊匹配，只需输入你记得的一部分即可，譬如我想要找一个“www.iplaysoft.com.php”的文件来编辑，那么你只需要输入“ipl”或者是”ips.c”这样的字符都能匹配出来
+先输入一个 @ 号看看？嗯，好样的！这列表马上帮你罗列出这文件里全部的 Function 了！同样使用模糊匹配，快速输入几个关键字，马上就能定位到那个Function去了
+
+import urllib.request,os; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), 'wb').write(urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ','%20')).read())
+
+可能由于各种原因，无法使用代码安装，那可以通过以下步骤手动安装Package Control：
+
+1.点击Preferences>BrowsePackages菜单
+
+2.进入打开的目录的上层目录，然后再进入Installed Packages/目录
+
+3.下载Package Control.sublime-package并复制到Installed Packages/目录
+
+4.重启SublimeText。
+
+Ctrl+Alt+A :代码对齐、
+
+方便后期根据注释生成API文档，输入 “/**” + enter调出 (在function的上面一行才有效果)  

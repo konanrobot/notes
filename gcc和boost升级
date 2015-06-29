@@ -1,0 +1,59 @@
+1.下载gcc最新的源码包 wget http://gcc.skazkaforyou.com/releases/gcc-4.9.1/gcc-4.9.1.tar.gz
+
+2.解压缩 tar -xf gcc-4.9.1.tar.gz
+
+3. cd gcc-4.9.1
+
+4.运行download_prerequisites脚本， ./contrib/download_prerequisites ，这个脚本会自动帮你下载所需要的依赖文件和库
+
+5.建立输出目录，将所有的中间文件都放到该目录，
+
+mkdir gcc_temp
+
+cd gcc_temp
+
+6. 运行 ../configure --enable-checking=release --enable-languages=c,c++ --disable-multilib
+
+7. make 
+
+8. sudo make install
+
+9.which gcc查看原来的gcc所在位置，到达所在目录，删除他并建立软链接 sudo ln -s 现在的gcc gcc
+
+10.在cmake工程中要用c++11特性的话要给CMAKE_CXX_FLAGS项添加-std=c++11
+---------------------
+sudo ./bootstrap.sh
+sudo./bjam
+sudo ./bjam install
+
+2015-6-25添加：
+在编译的时候发现找不到库，上述库装到了/usr/local/lib,在/etc/ld.so.conf里包含常用库的路径，打开之后发现只有一句话：
+include /etc/ld.so.conf.d/*.conf
+打开/etc/ld.so.conf.d/*.conf之后，里面的内容为：
+/usr/lib/i386-linux-gnu/mesa
+# Multiarch support
+/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu
+/lib/i686-linux-gnu
+/usr/lib/i686-linux-gnu
+# libc default configuration
+/usr/local/lib
+/usr/lib/vmware-tools/lib32/libvmGuestLib.so
+/usr/lib/vmware-tools/lib64/libvmGuestLib.so
+/usr/lib/vmware-tools/lib32/libvmGuestLibJava.so
+/usr/lib/vmware-tools/lib64/libvmGuestLibJava.so
+/usr/lib/vmware-tools/lib32/libDeployPkg.so
+/usr/lib/vmware-tools/lib64/libDeployPkg.so
+
+说明了是包含了/usr/local/lib的，所以因该不是路径的问题。
+解决方案：
+使用ldconfig命令（动态链接库管理命令），主要在默认搜索目录（/lib和/usr/lib）和动态库配置文件中所列的目录下搜索可共享的动态链接库，进而创建出动态装入程序所需要的链接和缓存文件（默认为/etc/ld.so.cache,保存已排序的动态链接库的名字列表）
+ldconfig通常在系统启动时运行，当用户安装了新的动态库时，需要手动运行这个命令。
+运行命令：
+ldconfig -v
+然后就可发现新安装的动态链接库
+
+
+ 
+
+

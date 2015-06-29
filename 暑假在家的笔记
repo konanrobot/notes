@@ -1,0 +1,59 @@
+1.nodelet是搞毛线的？
+在一个process中运行多个算法（with zero copy transport between algoritms）.nodelet提供了nodelet基类来执行一个nodelet，并且有一个NodeletLoader类来instantiatingnodelets。
+1.1 High Level
+在一个机器上，一个process中，运行多个算法，没有incurring copy costs(当传输信息intraprocess)。roscpp在一个node中在pub和sub calls之间已经优化了zero copy pointer passing。nodelets允许在同一个node中动态加载类，然而他们提供了simple separate namespaces，这样nodelet看起来就像一个分离的node，虽然还是在一个process。当使用pluginlib时，他也是可以动态加载的。
+nodelet可以压缩大流量的数据传输，避免复制和网络拥堵。
+他的设计目标为：
+使用现有的C++ ROS 接口
+在nodelets之间运行数据的zero copy passing
+像plugins一样动态加载来break build time dependencies
+在node或者nodelet中写代码的区别最下化
+技术细节：
+定义了一个基类nodelet::Nodelet,可以用来动态加载。所有的nodelets都会继承这个基类，可以使用pluginlib来动态加载。
+提供命名空间，自动remapping参数，like他们是第一个类节点。
+有一个nodelet_manager，可以有多个nodelets被加载。他们之间的联系可以通过一个boost shared pointer来使用zero copy roscpp publish
+基本的使用方法：
+nodelet load pkg/Type manager   launch a nodelet of type pkg/Type on manager manager
+nodelet standalone pkg/Type  Launch a nodelet of type pkg/Type in a standalone node
+nodelet unload name manager    Unload 一个nodelet by name from manager
+nodelet manager     launch 一个nodelet manager节点
+进一步的命令和launch要看教程running a nodelet
+nodelet::Nodelet基类的各种方法：
+public方法有：
+Nodelet（）动态加载时默认的构造函数
+void init (const std::string& name, const ros::M_string& remapping_args, const std::vector<std::string>& my_argv)。nodelet初始化方法，参数是manager需要来启动nodelet的，这个函数会初始化nodelet基类然后调用子类的onInit()方法。
+子类中用到的protected成员和方法：
+std::string  getName() ：获得nodelet的名字
+ros::NodeHandle&  getNodeHandle () // 获得节点句柄 (provides this nodelets custom remappings and name)
+ros::NodeHandle&  getPrivateNodeHandle () // 获得私有节点句柄 (provides this nodelets custom remappings in its private namespace)
+ros::NodeHandle&  getMTNodeHandle () // 获得具有多线程调用队列的节点句柄(provides this nodelets custom remappings and name)
+ros::NodeHandle&  getMTPrivateNodeHandle () // 获得具有多线程调用队列的私有节点句柄(provides this nodelets custom remappings in its private namespace）
+ros::CallbackQueue&     getMTCallbackQueue () // 获得调用队列 (threadpool available from the manager)
+std::vector<std::string> getMyArgv() // 获得命令行参数to the nodelet stripped of ROS and nodelet specific args. 
+初始化方法来开始子类的ROS API
+virtual void onInit () = 0 //Virtual and must be overridden by subclass. All initialization of the ROS infrastructure must be put into this function.
+nodelet rosconsole 宏指令
+包括 DEBUG, INFO, WARN, ERROR, and FATAL。这些宏指令只能在nodelet方法内编译。
+They operate by setting up a named logger in the name of the nodelet running ，这样就可以区分在一个管理器上两个相同类型的nodelets输出。
+   #include "nodelet/nodelet.h"
+  //... inside a nodelet method
+  NODELET_DEBUG("My debug statement")
+  NODELET_DEBUG_STREAM("my debug statement " << (double) 1.0)
+  NODELET_DEBUG_COND( 1 == 1, "my debug_statement")
+  NODELET_DEBUG_STREAM_COND( 1 == 1, "my debug statement " << (double) 1.0)
+从nodelet发布：
+如果你想让no-copy pub/sub有效，就必须把你的信息以shared_ptr类型发布。具体的就看roscpp/Overview/Publishers and Subscribers#Intraprocess_Publishing
+线程模型
+nodelet管理器有一个线程池,在管理器的组织下所有的nodelets都可以实现共享。这可以通过“num_worker_threads”来设置。
+默认的线程模型具有对所有回调的单线程。也有一个多线程API
+onInit：This method is called on init and should not block or do significant work. 
+单线程API：使用getNodeHandle()和getPrivateNodeHandle()可以保证所有的回调arrive serially。
+多线程API：使用 getMTNodeHandle()和getMTPrivateNodeHandle()，回调就能分布在管理器的线程池中。
+Additional Threads：对一个nodelet来说，创造自己的线程来operation是无效的。These threads should be cleaned up properly in the destructor. 
+线程共享：所有的nodelets共享管理器的线程池。 If nodelets are blocking threads they may prevent other nodelets from getting callbacks. Make sure the manager is configured with enough threads to prevent blocking. Note: Even the single threaded Node Handles can consume 1 thread of the pool per nodelet. 
+2.liba是搞毛线的？
+3.任务规划是怎么实现的？
+4.costmap为什么不出来？
+5.indigo的串口读写为什么不行？
+6.urdf？
+7.gazebo

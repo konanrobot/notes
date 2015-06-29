@@ -1,0 +1,20 @@
+export ROS_PACKAGE_PATH=/opt/ros/indigo/share:/opt/ros/indigo/stacks:/home/exbot/catkin_ws
+启动一个假的机器人：
+roslaunch rbx1_bringup fake_turtlebot.launch
+启动amcl：
+roslaunch rbx1_nav fake_amcl.launch map:=test_map.yaml
+两者合一：启动一个假的机器人，同时产生一个假的目标，导航
+roslaunch rbx1_nav fake_nav_test.launch 
+键盘控制：
+roslaunch rbx1_nav keyboard_teleop.launch 
+
+以上都没有激光数据
+模拟四个机器人在同一个地图里：
+rosrun stage_ros stageros willow-multi-erratic.word
+特点：包含激光数据！
+发布速度命令：
+rostopic pub /robot_2/cmd_vel -r 10 geometry_msgs/Twist '{ linear:{x: 0.2}}'
+
+
+
+
